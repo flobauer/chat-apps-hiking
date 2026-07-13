@@ -1,0 +1,46 @@
+{
+  "name": "chatgpt-apps-hiking",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Alpic MCP Server Template",
+  "type": "module",
+  "scripts": {
+    "dev": "skybridge dev",
+    "build": "skybridge build",
+    "start": "node dist/server/src/index.js",
+    "deploy": "alpic deploy",
+    "geohash:all": "node scripts/add-geohash.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@turf/turf": "^7.3.0",
+    "@types/mapbox-gl": "^3.4.1",
+    "fuse.js": "^7.3.0",
+    "mapbox-gl": "^3.21.0",
+    "ngeohash": "^0.6.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-map-gl": "^8.1.0",
+    "react-router-dom": "^7.14.0",
+    "skybridge": ">=0.35.14 <1.0.0",
+    "tailwindcss": "^4.2.2",
+    "vite": "^8.0.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@skybridge/devtools": ">=0.35.14 <1.0.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.12.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "alpic": "^1.152.0",
+    "tailwind": "^4.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  }
+}

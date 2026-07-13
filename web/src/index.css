@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.tour-panel-contours {
+  background-image:
+    radial-gradient(ellipse at 15% 130%, transparent 0 34%, rgba(255, 255, 255, 0.35) 35%, transparent 36% 44%, rgba(255, 255, 255, 0.2) 45%, transparent 46%),
+    radial-gradient(ellipse at 110% -30%, transparent 0 38%, rgba(255, 255, 255, 0.28) 39%, transparent 40% 49%, rgba(255, 255, 255, 0.18) 50%, transparent 51%);
+}
+
+.tour-description strong {
+  color: #2f4936;
+  font-weight: 650;
+}
+
+.tour-description br + br {
+  display: block;
+  content: "";
+  margin-top: 0.65rem;
+}
+
+.tour-detail-scrollbar {
+  scrollbar-color: #aab7a7 transparent;
+  scrollbar-width: thin;
+}
