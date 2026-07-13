@@ -1,97 +1,58 @@
-# Skybridge Starter
+# Austrian Hiking Map
 
-A minimal TypeScript template for building MCP and ChatGPT Apps with the [Skybridge](https://docs.skybridge.tech/home) framework.
+A ChatGPT app for discovering and inspecting hiking routes across Austria through conversation and an interactive terrain map.
 
-## Getting Started
+Users can ask ChatGPT for a hike by route name, area, difficulty preference, duration, scenery, or fitness level. The map and conversation share the same selected tour, whether the selection starts in ChatGPT or on the map.
 
-### Prerequisites
+## Requirements
 
-- Node.js 24+
-- HTTP tunnel such as [Alpic tunnel](https://docs.alpic.ai/cli/tunnel) if you want to test with remote MCP hosts like ChatGPT or Claude.ai.
+- Node.js 24.14.1 or newer
+- A Mapbox public access token
 
-### Local Development
-
-#### 1. Install
+## Local development
 
 ```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-```
-
-#### 2. Start your local server
-
-Run the development server from the root directory:
-
-```bash
+npm ci
+cp .env.example .env
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-This command starts:
-- Your MCP server at `http://localhost:3000/mcp`.
-- Skybridge DevTools UI at `http://localhost:3000/`.
+Set `VITE_MAPBOX_ACCESS_TOKEN` in `.env`. Skybridge starts the MCP endpoint and local development tools.
 
-#### 3. Project structure
+## Production build
 
-```
-├── server/
-│   └── src/
-│       └── index.ts      # Server entry point
-├── web/
-│   ├── src/
-│   │   ├── widgets/      # React components (one per widget)
-│   │   ├── helpers.ts    # Shared utilities
-│   │   └── index.css     # Global styles
-│   └── vite.config.ts
-├── alpic.json            # Deployment config
-├── nodemon.json          # Dev server config
-└── package.json
+```bash
+npm ci
+npm run build
+npm start
 ```
 
-### Create your first widget
+The build output is written to `dist/`. Generated JavaScript and source maps are not committed beside the TypeScript source.
 
-#### 1. Add a new widget
+## Deployment
 
-- Register a widget in `server/src/server.ts` with a unique name (e.g., `my-widget`) using [`registerWidget`](https://docs.skybridge.tech/api-reference/register-widget)
-- Create a matching React component at `web/src/widgets/my-widget.tsx`. **The file name must match the widget name exactly**.
+The app is configured for Alpic through [`alpic.json`](./alpic.json).
 
-#### 2. Edit widgets with Hot Module Replacement (HMR)
+First deployment:
 
-Edit and save components in `web/src/widgets/` — changes will appear instantly inside your App.
+```bash
+npx alpic@latest login
+npx alpic@latest deploy --yes --project-name austrian-hiking-map .
+```
 
-#### 3. Edit server code
+For later deployments, use:
 
-Modify files in `server/` and refresh the connection with your testing MCP Client to see the changes.
+```bash
+npx alpic@latest deploy --yes .
+```
 
-### Testing your App
+Configure `VITE_MAPBOX_ACCESS_TOKEN` in the deployment environment before publishing the app.
 
-You can test your App locally by using our DevTools UI on `localhost:3000` while running the `pnpm dev` command.
+## Submission resources
 
-To test your app with other MCP Clients like ChatGPT, Claude or VSCode, see [Testing Your App](https://docs.skybridge.tech/quickstart/test-your-app).
+- Website: https://austrian-hiking-map.glassy-cod-1766.chatgpt.site/
+- Privacy policy: https://austrian-hiking-map.glassy-cod-1766.chatgpt.site/privacy
+- Terms of service: https://austrian-hiking-map.glassy-cod-1766.chatgpt.site/terms
+- Light-mode icon: [`submission-assets/austrian-hiking-map-logo-light.png`](./submission-assets/austrian-hiking-map-logo-light.png)
 
-
-## Deploy to Production
-
-Skybridge is infrastructure vendor agnostic, and your app can be deployed on any cloud platform supporting MCP.
-
-The simplest way to deploy your App in minutes is [Alpic](https://alpic.ai/).
-1. Create an account on [Alpic platform](https://app.alpic.ai/). 
-2. Connect your GitHub repository to automatically deploy at each commit. 
-3. Use your remote App URL to connect it to MCP Clients, or use the Alpic Playground to easily test your App.
-
-## Resources
-- [Skybridge Documentation](https://docs.skybridge.tech/)
-- [Apps SDK Documentation](https://developers.openai.com/apps-sdk)
-- [MCP Apps Documentation](https://github.com/modelcontextprotocol/ext-apps/tree/main)
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [Alpic Documentation](https://docs.alpic.ai/)
+The website is maintained and deployed independently from the app repository through Sites.

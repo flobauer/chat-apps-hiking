@@ -68,3 +68,17 @@ Explore a hike:
 3. Selecting a hike in ChatGPT updates the frontend's selected hike, map focus, and detail panel.
 4. Clicking a hike marker updates the frontend selection and provides ChatGPT with the selected hike and useful details.
 5. Existing map browsing, route animation, and fullscreen behavior remain functional.
+
+## Submission Website
+
+- A separate public website introduces the app without changing the ChatGPT app runtime.
+- Dedicated `/privacy` and `/terms` pages provide submission-ready policy URLs.
+- The privacy policy states that the app has no accounts, analytics, advertising, or persistent user-data storage, while distinguishing OpenAI and Mapbox processing.
+- A `/demo` page is reserved for the final walkthrough recording supplied by the app owner.
+- The homepage teaser uses the bundled “Rund um den Gosausee” tour (ID `430000685`), including its real route shape and dataset-derived details.
+
+## Submission Assets
+
+- The light-mode app icon is a square 1024×1024 opaque PNG with no border or rounded corners.
+- Its centered alpine route mark remains fully legible when clients crop the square image to a circle.
+- The website footer displays the original Change Tourism Austria and Austria Tourism challenge-partner logos with links matching the hackathon reference implementation.

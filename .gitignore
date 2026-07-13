@@ -1,5 +1,17 @@
 node_modules/
 dist/
 .env*
+!.env.example
 .DS_store
 *.tsbuildinfo
+
+# TypeScript is the source of truth; production output belongs in dist/.
+server/src/**/*.js
+server/src/**/*.js.map
+web/src/**/*.js
+web/src/**/*.js.map
+web/types/**/*.js
+web/types/**/*.js.map
+
+# The submission website is independently versioned and deployed with Sites.
+/website/

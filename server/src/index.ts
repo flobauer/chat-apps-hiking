@@ -167,8 +167,8 @@ function formatMapOpenedMessage(query?: string) {
 
 const server = new McpServer(
   {
-    name: "alpic-openai-app",
-    version: "0.0.1",
+    name: "austrian-hiking-map",
+    version: "0.1.0",
   },
   { capabilities: {} },
 ).registerTool(

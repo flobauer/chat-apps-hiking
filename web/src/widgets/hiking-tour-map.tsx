@@ -4,12 +4,12 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { type TourBundle, type TourDetailData } from "../../types/Tour.js";
 
 import { useEffect, useRef, useState } from "react";
-import { mountView, useDisplayMode, useViewState } from "skybridge/web";
+import { createStore, useDisplayMode } from "skybridge/web";
 
 import { useCallTool, useToolInfo } from "../helpers.js";
 
 import { TourDetail } from "./components/TourDetail.js";
-import { MapView } from "./components/MapView.js"; 
+import { MapView } from "./components/MapView.js";
 import type { TourBundleToFetch } from "../../types/Tour.js";
 
 type HikingViewState = {
@@ -19,7 +19,13 @@ type HikingViewState = {
     city?: string;
     categories: string[];
   } | null;
+  setSelectedTour: (tour: HikingViewState["selectedTour"]) => void;
 };
+
+const useHikingViewStore = createStore<HikingViewState>((set) => ({
+  selectedTour: null,
+  setSelectedTour: (selectedTour) => set({ selectedTour }),
+}));
 
 function HikingTourMap() {
   // Screen info
@@ -30,16 +36,24 @@ function HikingTourMap() {
     useToolInfo<"hiking-tour-map">();
 
   const [selectedTour, setSelectedTour] = useState<TourBundle | null>(null);
-  const [viewState, setViewState] = useViewState<HikingViewState>({
-    selectedTour: null,
-  });
+  const selectedTourState = useHikingViewStore((state) => state.selectedTour);
+  const persistSelectedTour = useHikingViewStore(
+    (state) => state.setSelectedTour,
+  );
   const allTours = responseMetadata?.allTours || [];
   const toolSelectionRequestRef = useRef(0);
 
   const { callTool: selectTourForChatGPT } = useCallTool("hiking-tour-map");
 
   const loadTour = async (tourId: string) => {
-    const fetchedTour = await import(`../../../assets/tour/${tourId}.json`).then((module) => module.default as TourDetailData);
+    const assetUrl = `${window.skybridge.serverUrl}/assets/tour/${encodeURIComponent(tourId)}.json`;
+    const response = await fetch(assetUrl);
+
+    if (!response.ok) {
+      throw new Error(`Could not load hiking tour ${tourId}.`);
+    }
+
+    const fetchedTour = (await response.json()) as TourDetailData;
     const newTourBundle: TourBundle = {
       ...fetchedTour.data,
       popup: null,
@@ -57,36 +71,38 @@ function HikingTourMap() {
     const requestId = toolSelectionRequestRef.current + 1;
     toolSelectionRequestRef.current = requestId;
 
-    void loadTour(output.tour.id).then((tourBundle) => {
-      if (toolSelectionRequestRef.current !== requestId) {
-        return;
-      }
-
-      setSelectedTour((currentTour) => {
-        if (currentTour?.id !== tourBundle.id) {
-          return tourBundle;
+    void loadTour(output.tour.id)
+      .then((tourBundle) => {
+        if (toolSelectionRequestRef.current !== requestId) {
+          return;
         }
 
-        return {
-          ...tourBundle,
-          marker: currentTour.marker,
-          popup: currentTour.popup,
-        };
-      });
+        setSelectedTour((currentTour) => {
+          if (currentTour?.id !== tourBundle.id) {
+            return tourBundle;
+          }
 
-      setViewState({
-        selectedTour: {
+          return {
+            ...tourBundle,
+            marker: currentTour.marker,
+            popup: currentTour.popup,
+          };
+        });
+
+        persistSelectedTour({
           id: tourBundle.id,
           title: tourBundle.title,
           city: tourBundle.city,
           categories: tourBundle.categories,
-        },
+        });
+      })
+      .catch(() => {
+        // The server tool still provides the model-facing result if a host
+        // blocks the optional widget asset request.
       });
-    });
-  }, [output?.tour?.id, setViewState]);
+  }, [output?.tour?.id, persistSelectedTour]);
 
   const handleTourClick = async (tour: TourBundleToFetch) => {
-
     const fetchedTour = await loadTour(tour.id);
     const newTourBundle: TourBundle = {
       ...fetchedTour,
@@ -95,13 +111,11 @@ function HikingTourMap() {
     };
 
     setSelectedTour(newTourBundle);
-    setViewState({
-      selectedTour: {
-        id: newTourBundle.id,
-        title: newTourBundle.title,
-        city: newTourBundle.city,
-        categories: newTourBundle.categories,
-      },
+    persistSelectedTour({
+      id: newTourBundle.id,
+      title: newTourBundle.title,
+      city: newTourBundle.city,
+      categories: newTourBundle.categories,
     });
     selectTourForChatGPT({ id: newTourBundle.id });
     setDisplayMode("fullscreen");
@@ -109,8 +123,8 @@ function HikingTourMap() {
 
   const llmContext = selectedTour
     ? `Selected Austrian hike: ${selectedTour.title}${selectedTour.city ? ` near ${selectedTour.city}` : ""}. Categories: ${selectedTour.categories.join(", ") || "hiking route"}. Tour id: ${selectedTour.id}.`
-    : viewState.selectedTour
-      ? `Selected Austrian hike: ${viewState.selectedTour.title}. Tour id: ${viewState.selectedTour.id}.`
+    : selectedTourState
+      ? `Selected Austrian hike: ${selectedTourState.title}. Tour id: ${selectedTourState.id}.`
       : "Browsing the hiking map of Austria. No hike is selected.";
 
   return (
@@ -162,5 +176,3 @@ function HikingTourWidget() {
 }
 
 export default HikingTourWidget;
-
-mountView(<HikingTourWidget />);
