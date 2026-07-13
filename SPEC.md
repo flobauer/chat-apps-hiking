@@ -68,11 +68,7 @@ Explore a hike:
 3. Selecting a hike in ChatGPT updates the frontend's selected hike, map focus, and detail panel.
 4. Clicking a hike marker updates the frontend selection and provides ChatGPT with the selected hike and useful details.
 5. Existing map browsing, route animation, and fullscreen behavior remain functional.
-6. Marker popups show the hike title and location before detail loading completes.
-7. A marker click requests fullscreen during the user gesture, uses the tool response to start the route animation, and falls back to the bundled tour detail asset if the host tool call fails.
-8. Local and production builds resolve the Mapbox client token from the documented `web/.env` location or the deployment environment.
-9. A ChatGPT-selected hike waits for the Mapbox style and terrain to finish initializing before adding and animating its route.
-10. Rendered hike markers expose their tour identity and an accessible hike label for reliable interaction.
+6. The map and tour selection path retain the behavior from the last known-working version of the app.
 
 ## Submission Website
 

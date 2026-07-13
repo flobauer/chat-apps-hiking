@@ -192,7 +192,6 @@ export function MapView({ tours, selectedTour, onTourClick }: MapViewProps) {
   });
 
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isMapReady, setIsMapReady] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -202,6 +201,27 @@ export function MapView({ tours, selectedTour, onTourClick }: MapViewProps) {
   useEffect(() => {
     onTourClickRef.current = onTourClick;
   }, [onTourClick]);
+
+  const updatePopup = (tour: TourBundle, popup: Popup, elevation?: number) => {
+    const content = document.createElement("div");
+    content.className = "tour-map-popup";
+
+    const title = document.createElement("strong");
+    title.textContent = tour.title;
+    content.appendChild(title);
+
+    if (typeof elevation === "number") {
+      const elevationText = document.createElement("div");
+      elevationText.textContent = `Höhe: ${elevation}m`;
+      content.appendChild(elevationText);
+    } else if (tour.city) {
+      const cityText = document.createElement("div");
+      cityText.textContent = tour.city;
+      content.appendChild(cityText);
+    }
+
+    popup.setDOMContent(content);
+  };
 
   const syncPopupToMarker = (popup: Popup, marker: Marker) => {
     popup.setLngLat(marker.getLngLat());
@@ -536,10 +556,6 @@ export function MapView({ tours, selectedTour, onTourClick }: MapViewProps) {
 
   // trigger when tour is selected
   useEffect(() => {
-    if (!isMapReady) {
-      return;
-    }
-
     if (selectedTour) {
       void zoomIn();
     } else {
@@ -549,16 +565,16 @@ export function MapView({ tours, selectedTour, onTourClick }: MapViewProps) {
         syncVisibleMarkers(map);
       }
     }
-  }, [isMapReady, selectedTour]);
+  }, [selectedTour]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !isMapReady || selectedTour) {
+    if (!map || selectedTour) {
       return;
     }
 
     syncVisibleMarkers(map);
-  }, [isMapReady, selectedTour, tours]);
+  }, [selectedTour, tours]);
 
   const handleZoomOut = () => {
     const map = mapRef.current;
@@ -643,8 +659,6 @@ export function MapView({ tours, selectedTour, onTourClick }: MapViewProps) {
 
         await map.once("idle");
 
-        setIsMapReady(true);
-
         resizeObserver = new ResizeObserver(() => {
           map.resize();
         });
@@ -725,7 +739,6 @@ function createMarker(
     anchor: "bottom",
     offset: [0, -28],
   });
-  updatePopup(tour, popup);
   const marker = new mapboxgl.Marker({
     color: "green",
     scale: 0.8,
@@ -737,15 +750,7 @@ function createMarker(
     .setLngLat(tour.coordinates.map(Number) as [number, number])
     .addTo(map);
 
-  const markerElement = marker.getElement();
-  markerElement.dataset.tourId = tour.id;
-  markerElement.setAttribute(
-    "aria-label",
-    `${tour.title}${tour.city ? ` near ${tour.city}` : ""}`,
-  );
-  markerElement.setAttribute("title", tour.title);
-
-  markerElement.addEventListener("click", () => {
+  marker.getElement().addEventListener("click", () => {
     onBeforeZoom();
 
     const tourBundle: TourBundleToFetch = {
@@ -759,29 +764,4 @@ function createMarker(
 
   markerLookup[key] = marker;
   return marker;
-}
-
-function updatePopup(
-  tour: Pick<TourSummary, "title" | "city">,
-  popup: Popup,
-  elevation?: number,
-) {
-  const content = document.createElement("div");
-  content.className = "tour-map-popup";
-
-  const title = document.createElement("strong");
-  title.textContent = tour.title;
-  content.appendChild(title);
-
-  if (typeof elevation === "number") {
-    const elevationText = document.createElement("div");
-    elevationText.textContent = `Höhe: ${elevation}m`;
-    content.appendChild(elevationText);
-  } else if (tour.city) {
-    const cityText = document.createElement("div");
-    cityText.textContent = tour.city;
-    content.appendChild(cityText);
-  }
-
-  popup.setDOMContent(content);
 }

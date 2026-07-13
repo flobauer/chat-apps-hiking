@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { type TourBundle, type TourDetailData } from "../../types/Tour.js";
 
 import { useEffect, useRef, useState } from "react";
-import { createStore, useDisplayMode } from "skybridge/web";
+import { useDisplayMode, useViewState } from "skybridge/web";
 
 import { useCallTool, useToolInfo } from "../helpers.js";
 
@@ -19,13 +19,7 @@ type HikingViewState = {
     city?: string;
     categories: string[];
   } | null;
-  setSelectedTour: (tour: HikingViewState["selectedTour"]) => void;
 };
-
-const useHikingViewStore = createStore<HikingViewState>((set) => ({
-  selectedTour: null,
-  setSelectedTour: (selectedTour) => set({ selectedTour }),
-}));
 
 function HikingTourMap() {
   // Screen info
@@ -36,33 +30,18 @@ function HikingTourMap() {
     useToolInfo<"hiking-tour-map">();
 
   const [selectedTour, setSelectedTour] = useState<TourBundle | null>(null);
-  const selectedTourState = useHikingViewStore((state) => state.selectedTour);
-  const persistSelectedTour = useHikingViewStore(
-    (state) => state.setSelectedTour,
-  );
+  const [viewState, setViewState] = useViewState<HikingViewState>({
+    selectedTour: null,
+  });
   const allTours = responseMetadata?.allTours || [];
   const toolSelectionRequestRef = useRef(0);
 
-  const { callToolAsync: selectTourForChatGPT } =
-    useCallTool("hiking-tour-map");
+  const { callTool: selectTourForChatGPT } = useCallTool("hiking-tour-map");
 
   const loadTour = async (tourId: string) => {
-    const serverUrl = window.skybridge?.serverUrl;
-    if (!serverUrl) {
-      throw new Error("The hiking data server is unavailable.");
-    }
-
-    const assetUrl = new URL(
-      `/assets/tour/${encodeURIComponent(tourId)}.json`,
-      serverUrl,
-    );
-    const response = await fetch(assetUrl);
-
-    if (!response.ok) {
-      throw new Error(`Could not load hiking tour ${tourId}.`);
-    }
-
-    const fetchedTour = (await response.json()) as TourDetailData;
+    const fetchedTour = await import(
+      `../../../assets/tour/${tourId}.json`
+    ).then((module) => module.default as TourDetailData);
     const newTourBundle: TourBundle = {
       ...fetchedTour.data,
       popup: null,
@@ -80,62 +59,36 @@ function HikingTourMap() {
     const requestId = toolSelectionRequestRef.current + 1;
     toolSelectionRequestRef.current = requestId;
 
-    void loadTour(output.tour.id)
-      .then((tourBundle) => {
-        if (toolSelectionRequestRef.current !== requestId) {
-          return;
+    void loadTour(output.tour.id).then((tourBundle) => {
+      if (toolSelectionRequestRef.current !== requestId) {
+        return;
+      }
+
+      setSelectedTour((currentTour) => {
+        if (currentTour?.id !== tourBundle.id) {
+          return tourBundle;
         }
 
-        setSelectedTour((currentTour) => {
-          if (currentTour?.id !== tourBundle.id) {
-            return tourBundle;
-          }
+        return {
+          ...tourBundle,
+          marker: currentTour.marker,
+          popup: currentTour.popup,
+        };
+      });
 
-          return {
-            ...tourBundle,
-            marker: currentTour.marker,
-            popup: currentTour.popup,
-          };
-        });
-
-        persistSelectedTour({
+      setViewState({
+        selectedTour: {
           id: tourBundle.id,
           title: tourBundle.title,
           city: tourBundle.city,
           categories: tourBundle.categories,
-        });
-      })
-      .catch(() => {
-        // The server tool still provides the model-facing result if a host
-        // blocks the optional widget asset request.
+        },
       });
-  }, [output?.tour?.id, persistSelectedTour]);
+    });
+  }, [output?.tour?.id, setViewState]);
 
   const handleTourClick = async (tour: TourBundleToFetch) => {
-    // Keep this request inside the user gesture. ChatGPT hosts may reject a
-    // fullscreen request made only after an asynchronous data fetch finishes.
-    setDisplayMode("fullscreen");
-
-    let fetchedTour: TourBundle;
-    try {
-      const result = await selectTourForChatGPT({ id: tour.id });
-      const selectedTourDetail = result.structuredContent?.tour;
-
-      if (!selectedTourDetail) {
-        throw new Error(`No detail data returned for hiking tour ${tour.id}.`);
-      }
-
-      fetchedTour = {
-        ...selectedTourDetail,
-        popup: null,
-        marker: null,
-      };
-    } catch {
-      // Keep the map usable if a host cannot complete a frontend tool call.
-      // The same-origin asset is bundled with every deployment.
-      fetchedTour = await loadTour(tour.id);
-    }
-
+    const fetchedTour = await loadTour(tour.id);
     const newTourBundle: TourBundle = {
       ...fetchedTour,
       popup: tour.popup,
@@ -143,18 +96,22 @@ function HikingTourMap() {
     };
 
     setSelectedTour(newTourBundle);
-    persistSelectedTour({
-      id: newTourBundle.id,
-      title: newTourBundle.title,
-      city: newTourBundle.city,
-      categories: newTourBundle.categories,
+    setViewState({
+      selectedTour: {
+        id: newTourBundle.id,
+        title: newTourBundle.title,
+        city: newTourBundle.city,
+        categories: newTourBundle.categories,
+      },
     });
+    selectTourForChatGPT({ id: newTourBundle.id });
+    setDisplayMode("fullscreen");
   };
 
   const llmContext = selectedTour
     ? `Selected Austrian hike: ${selectedTour.title}${selectedTour.city ? ` near ${selectedTour.city}` : ""}. Categories: ${selectedTour.categories.join(", ") || "hiking route"}. Tour id: ${selectedTour.id}.`
-    : selectedTourState
-      ? `Selected Austrian hike: ${selectedTourState.title}. Tour id: ${selectedTourState.id}.`
+    : viewState.selectedTour
+      ? `Selected Austrian hike: ${viewState.selectedTour.title}. Tour id: ${viewState.selectedTour.id}.`
       : "Browsing the hiking map of Austria. No hike is selected.";
 
   return (

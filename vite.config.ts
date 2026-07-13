@@ -10,7 +10,6 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const viewsDir = path.resolve(projectRoot, "web/src/widgets");
 
 export default defineConfig({
-  envDir: path.resolve(projectRoot, "web"),
   plugins: [
     skybridge({ viewsDir }) as PluginOption,
     react(),

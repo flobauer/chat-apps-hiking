@@ -13,11 +13,11 @@ Users can ask ChatGPT for a hike by route name, area, difficulty preference, dur
 
 ```bash
 npm ci
-cp .env.example web/.env
+cp .env.example .env
 npm run dev
 ```
 
-Set `VITE_MAPBOX_ACCESS_TOKEN` in `web/.env`. Skybridge starts the MCP endpoint and local development tools.
+Set `VITE_MAPBOX_ACCESS_TOKEN` in `.env`. Skybridge starts the MCP endpoint and local development tools.
 
 ## Production build
 
@@ -46,7 +46,7 @@ For later deployments, use:
 npx alpic@latest deploy --yes .
 ```
 
-Configure `VITE_MAPBOX_ACCESS_TOKEN` in the deployment environment before publishing the app. Vite also reads the local fallback from `web/.env`.
+Configure `VITE_MAPBOX_ACCESS_TOKEN` in the deployment environment before publishing the app.
 
 ## Submission resources
 
