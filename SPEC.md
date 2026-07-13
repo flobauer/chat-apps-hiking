@@ -81,4 +81,4 @@ Explore a hike:
 
 - The light-mode app icon is a square 1024×1024 opaque PNG with no border or rounded corners.
 - Its centered alpine route mark remains fully legible when clients crop the square image to a circle.
-- The website footer displays the original Change Tourism Austria and Austria Tourism challenge-partner logos with links matching the hackathon reference implementation.
+- The website footer displays smaller original Change Tourism Austria and Austria Tourism logos under “With support from,” using direct static asset paths and links matching the hackathon reference implementation.
