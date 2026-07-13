@@ -43,10 +43,19 @@ function HikingTourMap() {
   const allTours = responseMetadata?.allTours || [];
   const toolSelectionRequestRef = useRef(0);
 
-  const { callTool: selectTourForChatGPT } = useCallTool("hiking-tour-map");
+  const { callToolAsync: selectTourForChatGPT } =
+    useCallTool("hiking-tour-map");
 
   const loadTour = async (tourId: string) => {
-    const assetUrl = `${window.skybridge.serverUrl}/assets/tour/${encodeURIComponent(tourId)}.json`;
+    const serverUrl = window.skybridge?.serverUrl;
+    if (!serverUrl) {
+      throw new Error("The hiking data server is unavailable.");
+    }
+
+    const assetUrl = new URL(
+      `/assets/tour/${encodeURIComponent(tourId)}.json`,
+      serverUrl,
+    );
     const response = await fetch(assetUrl);
 
     if (!response.ok) {
@@ -103,7 +112,30 @@ function HikingTourMap() {
   }, [output?.tour?.id, persistSelectedTour]);
 
   const handleTourClick = async (tour: TourBundleToFetch) => {
-    const fetchedTour = await loadTour(tour.id);
+    // Keep this request inside the user gesture. ChatGPT hosts may reject a
+    // fullscreen request made only after an asynchronous data fetch finishes.
+    setDisplayMode("fullscreen");
+
+    let fetchedTour: TourBundle;
+    try {
+      const result = await selectTourForChatGPT({ id: tour.id });
+      const selectedTourDetail = result.structuredContent?.tour;
+
+      if (!selectedTourDetail) {
+        throw new Error(`No detail data returned for hiking tour ${tour.id}.`);
+      }
+
+      fetchedTour = {
+        ...selectedTourDetail,
+        popup: null,
+        marker: null,
+      };
+    } catch {
+      // Keep the map usable if a host cannot complete a frontend tool call.
+      // The same-origin asset is bundled with every deployment.
+      fetchedTour = await loadTour(tour.id);
+    }
+
     const newTourBundle: TourBundle = {
       ...fetchedTour,
       popup: tour.popup,
@@ -117,8 +149,6 @@ function HikingTourMap() {
       city: newTourBundle.city,
       categories: newTourBundle.categories,
     });
-    selectTourForChatGPT({ id: newTourBundle.id });
-    setDisplayMode("fullscreen");
   };
 
   const llmContext = selectedTour
