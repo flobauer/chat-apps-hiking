@@ -5,13 +5,21 @@ dist/
 .DS_store
 *.tsbuildinfo
 
-# TypeScript is the source of truth; production output belongs in dist/.
+# TypeScript is normally the source of truth; production output belongs in dist/.
+# These three checked-in compatibility modules are intentional: the app imports
+# explicit `.js` paths, and this is the verified runtime from the working release.
 server/src/**/*.js
 server/src/**/*.js.map
 web/src/**/*.js
 web/src/**/*.js.map
 web/types/**/*.js
 web/types/**/*.js.map
+!web/src/helpers.js
+!web/src/helpers.js.map
+!web/src/widgets/components/MapView.js
+!web/src/widgets/components/MapView.js.map
+!web/src/widgets/components/TourDetail.js
+!web/src/widgets/components/TourDetail.js.map
 
 # The submission website is independently versioned and deployed with Sites.
 /website/

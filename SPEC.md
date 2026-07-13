@@ -68,7 +68,7 @@ Explore a hike:
 3. Selecting a hike in ChatGPT updates the frontend's selected hike, map focus, and detail panel.
 4. Clicking a hike marker updates the frontend selection and provides ChatGPT with the selected hike and useful details.
 5. Existing map browsing, route animation, and fullscreen behavior remain functional.
-6. The map and tour selection path retain the behavior from the last known-working version of the app.
+6. The map and tour selection path use the verified working runtime: tours render, marker selection opens fullscreen, the elevation tooltip and route animation run, and the selected hike is exposed to ChatGPT through view state.
 
 ## Submission Website
 

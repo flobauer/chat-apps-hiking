@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { type TourBundle, type TourDetailData } from "../../types/Tour.js";
 
 import { useEffect, useRef, useState } from "react";
-import { useDisplayMode, useViewState } from "skybridge/web";
+import { mountView, useDisplayMode, useViewState } from "skybridge/web";
 
 import { useCallTool, useToolInfo } from "../helpers.js";
 
@@ -163,3 +163,5 @@ function HikingTourWidget() {
 }
 
 export default HikingTourWidget;
+
+mountView(<HikingTourWidget />);
